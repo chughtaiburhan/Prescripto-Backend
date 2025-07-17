@@ -105,7 +105,6 @@ export const validateType = (value: any, type: string): string | null => {
         ["true", "false", "0", "1"].includes(value)
         ? null
         : "Must be a boolean";
-
     default:
       return null;
   }
@@ -119,7 +118,6 @@ export const commonValidationRules = {
     type: "email",
     maxLength: 255,
   },
-
   password: {
     field: "password",
     required: true,
@@ -127,7 +125,6 @@ export const commonValidationRules = {
     maxLength: 128,
     pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
   },
-
   name: {
     field: "name",
     required: true,
@@ -135,13 +132,11 @@ export const commonValidationRules = {
     maxLength: 100,
     pattern: /^[a-zA-Z\s]+$/,
   },
-
   phone: {
     field: "phone",
     required: false,
     type: "phone",
   },
-
   age: {
     field: "age",
     required: false,
@@ -162,18 +157,15 @@ export const appointmentValidation = {
       const date = new Date(value);
       const today = new Date();
       today.setHours(0, 0, 0);
-
       if (date < today) return "Appointment date cannot be in the past";
       return null;
     },
   },
-
   slotTime: {
     field: "slotTime",
     required: true,
     pattern: /^([01]?[0-9]|2[0-3][0-5][0-9])$/,
   },
-
   docId: {
     field: "docId",
     required: true,
@@ -198,13 +190,11 @@ export const doctorValidation = {
         "Psychiatrist",
         "Ophthalmologist",
       ];
-
       if (!validSpecialities.includes(value))
         return `Speciality must be one of: ${validSpecialities.join(", ")}`;
       return null;
     },
   },
-
   fees: {
     field: "fees",
     required: false,
@@ -214,7 +204,6 @@ export const doctorValidation = {
       return null;
     },
   },
-
   experience: {
     field: "experience",
     required: false,
@@ -222,7 +211,7 @@ export const doctorValidation = {
   },
 };
 
-// Utility validation functions
+// Utility validation functions (robust versions)
 export const validateEmail = (email: string): string | null => {
   if (!email) return "Email is required";
   if (!validator.isEmail(email)) return "Invalid email format";
@@ -261,17 +250,20 @@ export const validateDate = (date: string): string | null => {
   return null;
 };
 
-// Sanitization functions
+// Sanitization functions (keep only one version)
 export const sanitizeString = (str: string): string => {
+  if (!str) return "";
   return validator.escape(str.trim());
 };
 
 export const sanitizeEmail = (email: string): string => {
-  return email.toLowerCase().trim();
+  if (!email) return "";
+  return email.trim().toLowerCase();
 };
 
 export const sanitizePhone = (phone: string): string => {
-  return phone.replace(/\D/g, ""); // Remove non-digits
+  if (!phone) return "";
+  return phone.replace(/\D/g, "");
 };
 
 // Validation helpers for specific use cases
@@ -282,17 +274,23 @@ export const validateAppointmentSlot = (
   const dateError = validateDate(slotDate);
   if (dateError) return dateError;
 
-  const timeError = appointmentValidation.slotTime.custom(slotTime);
-  if (timeError) return timeError;
+  // Basic time validation - check if it's a valid time format
+  if (!slotTime || typeof slotTime !== "string") {
+    return "Time is required";
+  }
+
+  // Simple time format check (HH:MM)
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  if (!timeRegex.test(slotTime)) {
+    return "Invalid time format. Use HH:MM format (e.g., 09:30, 14:45)";
+  }
 
   // Check if slot is in the future
   const appointmentDateTime = new Date(`${slotDate}T${slotTime}`);
   const now = new Date();
-
   if (appointmentDateTime <= now) {
     return "Appointment slot must be in the future";
   }
-
   return null;
 };
 
@@ -303,7 +301,6 @@ export const validateUserRegistration = async (request: NextRequest) => {
     commonValidationRules.password,
     commonValidationRules.phone,
   ];
-
   return await validateRequest(request, rules);
 };
 
@@ -316,7 +313,6 @@ export const validateDoctorRegistration = async (request: NextRequest) => {
     doctorValidation.fees,
     doctorValidation.experience,
   ];
-
   return await validateRequest(request, rules);
 };
 
@@ -326,6 +322,24 @@ export const validateAppointmentBooking = async (request: NextRequest) => {
     appointmentValidation.slotDate,
     appointmentValidation.slotTime,
   ];
-
   return await validateRequest(request, rules);
+};
+
+// Simple boolean/length validators for UI (not used in backend logic)
+export const validateEmailSimple = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+export const validatePhoneSimple = (phone: string): boolean => {
+  const phoneRegex = /^\d{10}$/;
+  return phoneRegex.test(phone);
+};
+
+export const validatePasswordSimple = (password: string): boolean => {
+  return Boolean(password && password.length >= 6);
+};
+
+export const validateName = (name: string): boolean => {
+  return Boolean(name && name.trim().length >= 2);
 };

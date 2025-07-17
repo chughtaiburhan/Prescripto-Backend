@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // Standard response patterns
 export interface ApiResponse<T = any> {
@@ -38,14 +38,14 @@ export const createSuccessResponse = <T>(
 };
 
 export const createPaginatedResponse = <T>(
-  data: T,
+  data: T[],
   page: number,
   limit: number,
   total: number,
   message: string = "Data retrieved successfully"
 ): NextResponse<ApiResponse<T[]>> => {
   const totalPages = Math.ceil(total / limit);
-  
+
   return NextResponse.json(
     {
       success: true,
@@ -85,7 +85,9 @@ export const createErrorResponse = (
 export const createValidationErrorResponse = (
   errors: string[]
 ): NextResponse<ApiResponse> => {
-  return createErrorResponse("Validation failed", 400, { validationErrors: errors });
+  return createErrorResponse("Validation failed", 400, {
+    validationErrors: errors,
+  });
 };
 
 export const createNotFoundResponse = (
@@ -151,7 +153,7 @@ export const getPaginationParams = (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
-  
+
   return {
     page: Math.max(1, page),
     limit: Math.min(100, Math.max(1, limit)), // Max 10 items per page
@@ -162,18 +164,18 @@ export const getPaginationParams = (request: NextRequest) => {
 // Query Building Helpers
 export const buildSearchQuery = (searchTerm: string, fields: string[]) => {
   if (!searchTerm) return {};
-  
+
   const searchRegex = new RegExp(searchTerm, "i");
-  const searchConditions = fields.map(field => ({
+  const searchConditions = fields.map((field) => ({
     [field]: searchRegex,
   }));
-  
+
   return { $or: searchConditions };
 };
 
 export const buildFilterQuery = (filters: Record<string, any>) => {
   const query: Record<string, any> = {};
-  
+
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
       if (typeof value === "string" && value.includes(",")) {
@@ -184,11 +186,14 @@ export const buildFilterQuery = (filters: Record<string, any>) => {
       }
     }
   });
-  
+
   return query;
 };
 
-export const buildSortQuery = (sortBy: string = "createdAt", sortOrder: string = "desc") => {
+export const buildSortQuery = (
+  sortBy: string = "createdAt",
+  sortOrder: string = "desc"
+) => {
   const order = sortOrder === "asc" ? 1 : -1;
   return { [sortBy]: order };
 };
@@ -200,19 +205,24 @@ export const withErrorHandling = async <T>(
 ): Promise<NextResponse<ApiResponse<T>>> => {
   try {
     const result = await operation();
-    return createSuccessResponse(result, `${operationName} completed successfully`);
+    return createSuccessResponse(
+      result,
+      `${operationName} completed successfully`
+    );
   } catch (error: any) {
     console.error(`${operationName} error:`, error);
-    
+
     if (error.name === "ValidationError") {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      const validationErrors = Object.values(error.errors).map(
+        (err: any) => err.message
+      );
       return createValidationErrorResponse(validationErrors);
     }
-    
+
     if (error.code === 11000) {
       return createConflictResponse("Duplicate entry found");
     }
-    
+
     return createServerErrorResponse(error);
   }
 };
@@ -226,7 +236,7 @@ export const createRateLimitKey = (identifier: string, action: string) => {
 export const createCacheKey = (prefix: string, params: Record<string, any>) => {
   const sortedParams = Object.keys(params)
     .sort()
-    .map(key => `${key}:${params[key]}`)
+    .map((key) => `${key}:${params[key]}`)
     .join(":");
   return `${prefix}:${sortedParams}`;
-}; 
+};

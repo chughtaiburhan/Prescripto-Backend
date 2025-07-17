@@ -178,9 +178,3 @@ export const validateRequest = async (
     };
   }
 };
-
-declare module "validator" {
-  export function isEmail(email: string): boolean;
-  export function isMobilePhone(phone: string): boolean;
-  // Add other validator functions you use
-}

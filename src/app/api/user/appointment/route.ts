@@ -2,10 +2,10 @@ import { NextRequest } from "next/server";
 import dbConnect from "@/lib/db";
 import Appointment from "@/models/Appointment";
 import { authUser } from "@/middleware/authUser";
-import {
-  createSuccessResponse,
-  handleDatabaseError
-} from "@/lib/api-utils";
+import { createSuccessResponse, handleDatabaseError } from "@/lib/api-utils";
+
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
       .lean(); // Use lean() for better performance
 
     return createSuccessResponse({ appointment: appointments });
-
   } catch (error: any) {
     return handleDatabaseError(error, "List appointments");
   }

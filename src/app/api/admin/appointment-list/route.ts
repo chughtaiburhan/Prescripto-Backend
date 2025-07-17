@@ -4,6 +4,9 @@ import Appointment from "@/models/Appointment";
 import { authAdmin } from "@/middleware/authAdmin";
 import { createSuccessResponse, handleDatabaseError } from "@/lib/api-utils";
 
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();

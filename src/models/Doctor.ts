@@ -24,8 +24,7 @@ const doctorSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for better performance
-doctorSchema.index({ email: 1 });
+// Indexes for better performance (removed duplicate email index)
 doctorSchema.index({ available: 1 });
 doctorSchema.index({ speciality: 1 });
 doctorSchema.index({ createdAt: -1 });

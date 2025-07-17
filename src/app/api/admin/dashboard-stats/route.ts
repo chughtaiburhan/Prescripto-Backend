@@ -4,10 +4,10 @@ import User from "@/models/User";
 import Doctor from "@/models/Doctor";
 import Appointment from "@/models/Appointment";
 import { authAdmin } from "@/middleware/authAdmin";
-import {
-  createSuccessResponse,
-  handleDatabaseError
-} from "@/lib/api-utils";
+import { createSuccessResponse, handleDatabaseError } from "@/lib/api-utils";
+
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,19 +22,15 @@ export async function GET(request: NextRequest) {
     // Use aggregation for better performance
     const [userStats, doctorStats, appointmentStats] = await Promise.all([
       // Get user statistics
-      User.aggregate([
-        { $group: { _id: null, totalUsers: { $sum: 1 } } }
-      ]),
-      
+      User.aggregate([{ $group: { _id: null, totalUsers: { $sum: 1 } } }]),
+
       // Get doctor statistics
-      Doctor.aggregate([
-        { $group: { _id: null, totalDoctors: { $sum: 1 } } }
-      ]),
-      
+      Doctor.aggregate([{ $group: { _id: null, totalDoctors: { $sum: 1 } } }]),
+
       // Get appointment statistics
       Appointment.aggregate([
-        { $group: { _id: null, totalAppointments: { $sum: 1 } } }
-      ])
+        { $group: { _id: null, totalAppointments: { $sum: 1 } } },
+      ]),
     ]);
 
     // Extract results
@@ -47,7 +43,6 @@ export async function GET(request: NextRequest) {
       totalDoctors,
       totalAppointments,
     });
-
   } catch (error: any) {
     return handleDatabaseError(error, "Dashboard stats");
   }

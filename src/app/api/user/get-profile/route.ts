@@ -5,8 +5,11 @@ import { authUser } from "@/middleware/authUser";
 import {
   createSuccessResponse,
   createErrorResponse,
-  handleDatabaseError
+  handleDatabaseError,
 } from "@/lib/api-utils";
+
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +31,6 @@ export async function GET(request: NextRequest) {
     }
 
     return createSuccessResponse({ userData });
-
   } catch (error: any) {
     return handleDatabaseError(error, "Get user profile");
   }

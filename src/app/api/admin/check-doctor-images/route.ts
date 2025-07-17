@@ -3,6 +3,9 @@ import dbConnect from "@/lib/db";
 import Doctor from "@/models/Doctor";
 import { authAdmin } from "@/middleware/authAdmin";
 
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();

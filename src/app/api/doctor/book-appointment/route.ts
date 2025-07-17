@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
     );
 
     // Use transaction for data consistency
-    const session = await dbConnect().startSession();
+    const conn = await dbConnect();
+    const session = await conn.startSession();
     try {
       await session.withTransaction(async () => {
         // Save appointment

@@ -4,6 +4,9 @@ import Doctor from "@/models/Doctor";
 import { authAdmin } from "@/middleware/authAdmin";
 import { getFallbackDoctorImage } from "@/lib/image-utils";
 
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
@@ -19,30 +22,32 @@ export async function POST(request: NextRequest) {
 
     for (const doctor of doctors) {
       // Check if the image URL is broken (contains via.placeholder.com or is empty)
-      if (!doctor.image || 
-          doctor.image.includes('via.placeholder.com') || 
-          doctor.image.includes('blob:') ||
-          doctor.image === '') {
-        
+      if (
+        !doctor.image ||
+        doctor.image.includes("via.placeholder.com") ||
+        doctor.image.includes("blob:") ||
+        doctor.image === ""
+      ) {
         // Generate a new image URL with the doctor's name
         const newImageUrl = getFallbackDoctorImage(doctor.name);
-        
+
         // Update the doctor's image
         await Doctor.findByIdAndUpdate(doctor._id, {
-          image: newImageUrl
+          image: newImageUrl,
         });
-        
+
         updatedCount++;
-        console.log(`Updated image for doctor: ${doctor.name} -> ${newImageUrl}`);
+        console.log(
+          `Updated image for doctor: ${doctor.name} -> ${newImageUrl}`
+        );
       }
     }
 
     return NextResponse.json({
       success: true,
       message: `Updated ${updatedCount} doctor images`,
-      updatedCount
+      updatedCount,
     });
-
   } catch (error: any) {
     console.error("Update doctor images error:", error.message);
     return NextResponse.json(
@@ -50,4 +55,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

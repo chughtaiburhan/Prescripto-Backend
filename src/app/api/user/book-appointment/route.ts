@@ -5,6 +5,9 @@ import User from "@/models/User";
 import Appointment from "@/models/Appointment";
 import { authUser } from "@/middleware/authUser";
 
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();

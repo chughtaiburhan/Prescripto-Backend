@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "next.config.js", "use": "@vercel/next" }
+  ],
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
@@ -7,5 +10,10 @@
   },
   "env": {
     "NODE_ENV": "production"
-  }
+    // Add other env vars here if needed
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/$1" }
+  ]
 }

@@ -6,8 +6,11 @@ import {
   validateRequest,
   createSuccessResponse,
   createErrorResponse,
-  handleDatabaseError
+  handleDatabaseError,
 } from "@/lib/api-utils";
+
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const { error, body } = await validateRequest(request, ["docId"]);
     if (error) return error;
-    
+
     const { docId } = body;
 
     // Find doctor and toggle availability
@@ -35,10 +38,14 @@ export async function POST(request: NextRequest) {
     doctor.available = !doctor.available;
     await doctor.save();
 
-    return createSuccessResponse({
-      available: doctor.available,
-    }, `Doctor ${doctor.available ? "made available" : "made unavailable"} successfully`);
-
+    return createSuccessResponse(
+      {
+        available: doctor.available,
+      },
+      `Doctor ${
+        doctor.available ? "made available" : "made unavailable"
+      } successfully`
+    );
   } catch (error: any) {
     return handleDatabaseError(error, "Change availability");
   }

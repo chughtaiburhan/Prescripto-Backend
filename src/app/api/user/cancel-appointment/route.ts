@@ -7,8 +7,11 @@ import {
   validateRequest,
   createSuccessResponse,
   createErrorResponse,
-  handleDatabaseError
+  handleDatabaseError,
 } from "@/lib/api-utils";
+
+// Force dynamic rendering since this route uses request.headers
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +26,7 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const { error, body } = await validateRequest(request, ["appointmentId"]);
     if (error) return error;
-    
+
     const { appointmentId } = body;
 
     // Find appointment with optimized query
@@ -33,12 +36,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check authorization
-    if (appointmentData.userId.toString() !== userId) {
+    if ((appointmentData as any).userId.toString() !== userId) {
       return createErrorResponse("Unauthorized action", 403);
     }
 
     // Use transaction for data consistency
-    const session = await dbConnect().startSession();
+    const conn = await dbConnect();
+    const session = await conn.startSession();
     try {
       await session.withTransaction(async () => {
         // Cancel appointment
@@ -49,13 +53,17 @@ export async function POST(request: NextRequest) {
         );
 
         // Release doctor slot
-        const { docId, slotDate, slotTime } = appointmentData;
+        const { docId, slotDate, slotTime } = appointmentData as any;
         const doctorData = await Doctor.findById(docId).session(session);
-        
-        if (doctorData && doctorData.slot_booked && doctorData.slot_booked[slotDate]) {
-          doctorData.slot_booked[slotDate] = doctorData.slot_booked[slotDate].filter(
-            (time: string) => time !== slotTime
-          );
+
+        if (
+          doctorData &&
+          doctorData.slot_booked &&
+          doctorData.slot_booked[slotDate]
+        ) {
+          doctorData.slot_booked[slotDate] = doctorData.slot_booked[
+            slotDate
+          ].filter((time: string) => time !== slotTime);
           await doctorData.save({ session });
         }
       });
@@ -64,7 +72,6 @@ export async function POST(request: NextRequest) {
     }
 
     return createSuccessResponse({}, "Appointment Cancelled");
-
   } catch (error: any) {
     return handleDatabaseError(error, "Cancel appointment");
   }

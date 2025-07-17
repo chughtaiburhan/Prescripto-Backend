@@ -41,14 +41,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = generateJWT(doctor._id);
+    const token = generateJWT((doctor as any)._id);
 
     // Return success response with optimized doctor data
     return createSuccessResponse(
       {
         token,
         userData: {
-          _id: doctor._id,
+          _id: (doctor as any)._id,
           name: doctor.name,
           email: doctor.email,
           role: "doctor",

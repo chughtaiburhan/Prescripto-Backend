@@ -2,8 +2,9 @@ import { NextRequest } from "next/server";
 import { sendMail } from "@/lib/mailutils";
 import {
   validateUserRegistration,
-  sanitizeEmail,
   sanitizeString,
+  sanitizeEmail,
+  sanitizePhone,
   validateEmail,
   validatePassword,
   validatePhone,
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = generateJWT(user._id);
+    const token = generateJWT((user as any)._id);
 
     // Return success response with formatted data
     return createSuccessResponse(

@@ -32,6 +32,7 @@ export const API_ENDPOINTS = {
 // CORS Configuration
 export const CORS_ORIGINS = [
   "http://localhost:5173", // Frontend dev
+  "https://prescripto-frontend-ecru.vercel.app",
   "http://localhost:5174", // Admin panel dev
   "https://your-frontend.vercel.app", // Frontend production
   "https://your-admin-panel.vercel.app", // Admin panel production

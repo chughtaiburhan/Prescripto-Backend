@@ -121,9 +121,9 @@ export const commonValidationRules = {
   password: {
     field: "password",
     required: true,
-    minLength: 8,
+    minLength: 6,
     maxLength: 128,
-    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+    pattern: /^(?=.*[a-z])(?=.*\d)[a-z\d]+$/,
   },
   name: {
     field: "name",

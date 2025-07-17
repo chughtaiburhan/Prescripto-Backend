@@ -11,7 +11,10 @@ export async function POST(req: NextRequest) {
 
   const tempUser = tempUserStore.get(email);
   if (!tempUser || tempUser.verificationCode !== code) {
-    return NextResponse.json({ error: "Invalid or expired code" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid or expired code" },
+      { status: 400 }
+    );
   }
 
   // Hash password
@@ -41,6 +44,11 @@ export async function POST(req: NextRequest) {
       name: newUser.name,
       email: newUser.email,
       role: newUser.role,
+      phone: newUser.phone,
+      address: newUser.address,
+      gender: newUser.gender,
+      dob: newUser.dob,
+      image: newUser.image,
       isVerified: newUser.isVerified,
     },
   });

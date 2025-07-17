@@ -1,34 +1,47 @@
+// File: /api/user/verify-email.ts
 import { NextRequest, NextResponse } from "next/server";
+import { tempUserStore } from "../register/route"; // import from temp store
+import { hashPassword, generateJWT } from "@/lib/api-utils";
+import { UserService } from "@/lib/database-utils";
 import dbConnect from "@/lib/db";
-import User from "@/models/User";
-import { generateJWT } from "@/lib/api-utils";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
   const { email, code } = await req.json();
 
-  const user = await User.findOne({ email });
-  if (!user || user.verificationCode !== code) {
-    return NextResponse.json({ error: "Invalid code" }, { status: 400 });
+  const tempUser = tempUserStore.get(email);
+  if (!tempUser || tempUser.verificationCode !== code) {
+    return NextResponse.json({ error: "Invalid or expired code" }, { status: 400 });
   }
 
-  user.isVerified = true;
-  user.verificationCode = undefined;
-  await user.save();
+  // Hash password
+  const hashedPassword = await hashPassword(tempUser.password);
 
-  // Generate JWT token
-  const token = generateJWT(user._id);
+  // Final user data
+  const userData = {
+    ...tempUser,
+    password: hashedPassword,
+    isVerified: true,
+  };
 
-  // Return user data and token
+  // Save user to DB
+  const newUser = await UserService.createUser(userData);
+
+  // Clear temp store
+  tempUserStore.delete(email);
+
+  // Generate token
+  const token = generateJWT(newUser._id);
+
   return NextResponse.json({
     message: "Email verified successfully.",
     token,
     user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      // ...add any other fields you want to return
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      isVerified: newUser.isVerified,
     },
   });
 }

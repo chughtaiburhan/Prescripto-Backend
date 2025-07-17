@@ -20,9 +20,6 @@ import {
 import { UserService } from "@/lib/database-utils";
 import { hashPassword, generateJWT } from "@/lib/api-utils";
 
-// Temporary store for unverified users
-export const tempUserStore = new Map();
-
 export async function POST(request: NextRequest) {
   try {
     // Validate request using reusable validation

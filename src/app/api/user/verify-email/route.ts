@@ -42,12 +42,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Update user to verified
-  const updatedUser = await UserService.updateUser(user._id, {
+  const updatedUser = await UserService.updateUserProfile(user._id, {
     isVerified: true,
     verificationCode: undefined, // Clear the code
   });
 
-  // Generate token
+  // Generate JWT token for the verified user
   const token = generateJWT(updatedUser._id);
 
   return NextResponse.json({

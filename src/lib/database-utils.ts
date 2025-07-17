@@ -313,6 +313,11 @@ export class UserService extends DatabaseService {
     const User = (await import("@/models/User")).default;
     return this.updateById(User, userId, updateData);
   }
+
+  static async deleteUser(userId: string) {
+    const User = (await import("@/models/User")).default;
+    return this.deleteById(User, userId);
+  }
 }
 
 export class DoctorService extends DatabaseService {

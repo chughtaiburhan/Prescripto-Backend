@@ -24,7 +24,7 @@ import { hashPassword, generateJWT } from "@/lib/api-utils";
 export const tempUserStore = new Map();
 
 export async function POST(request: NextRequest) {
-  return withErrorHandling(async () => {
+  try {
     // Validate request using reusable validation
     const { isValid, errors, data } = await validateUserRegistration(request);
 
@@ -121,5 +121,10 @@ export async function POST(request: NextRequest) {
       },
       "OTP code sent to your email. Please verify to complete registration."
     );
-  }, "User registration");
+  } catch (error: any) {
+    console.error("Registration error:", error);
+    return createErrorResponse(
+      error.message || "Registration failed. Please try again."
+    );
+  }
 }

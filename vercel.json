@@ -10,7 +10,6 @@
   },
   "env": {
     "NODE_ENV": "production"
-    // Add other env vars here if needed
   },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },

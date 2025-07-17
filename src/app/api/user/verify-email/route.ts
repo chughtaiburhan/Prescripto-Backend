@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import { generateJWT } from "@/lib/jwt";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -15,5 +16,19 @@ export async function POST(req: NextRequest) {
   user.verificationCode = undefined;
   await user.save();
 
-  return NextResponse.json({ message: "Email verified successfully." });
+  // Generate JWT token
+  const token = generateJWT(user._id);
+
+  // Return user data and token
+  return NextResponse.json({
+    message: "Email verified successfully.",
+    token,
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      // ...add any other fields you want to return
+    },
+  });
 }

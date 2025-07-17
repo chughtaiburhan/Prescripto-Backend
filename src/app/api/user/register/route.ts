@@ -111,14 +111,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token
-    const token = generateJWT((user as any)._id);
-
-    // Return success response with formatted data
+    // Do NOT generate token here
     return createSuccessResponse(
       {
-        token,
-        userData: formatUserData(user),
+        email: sanitizedData.email, // Optionally return email for frontend state
       },
       "Registration successful. Please check your email for verification."
     );

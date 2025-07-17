@@ -5,6 +5,9 @@ import Doctor from "@/models/Doctor";
 import { authAdmin } from "@/middleware/authAdmin";
 import { uploadImage, getDefaultDoctorImage } from "@/lib/image-utils";
 
+// Force dynamic rendering since this route uses authentication
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   await dbConnect();
   const { name, email, password } = await request.json();

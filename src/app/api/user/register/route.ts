@@ -57,17 +57,20 @@ export async function POST(request: NextRequest) {
     // Generate verification code
     const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // Store user data temporarily (NOT in DB yet)
-    const tempUserData = {
+    // Hash password
+    const hashedPassword = await hashPassword(password);
+
+    // Create user with isVerified: false
+    const userData = {
       ...sanitizedData,
-      password: password, // Store plain password temporarily
+      password: hashedPassword,
       role: role || "patient",
       verificationCode,
       isVerified: false,
     };
 
-    // Store in temporary store
-    tempUserStore.set(sanitizedData.email, tempUserData);
+    // Save user to DB (unverified)
+    const user = await UserService.createUser(userData);
 
     // Send verification email
     try {
@@ -107,8 +110,8 @@ export async function POST(request: NextRequest) {
       console.log(`Verification email sent to ${sanitizedData.email}`);
     } catch (emailError: any) {
       console.error("Email sending failed:", emailError);
-      // Clean up temp store if email fails
-      tempUserStore.delete(sanitizedData.email);
+      // Delete the user if email fails
+      await UserService.deleteUser(user._id);
       return createErrorResponse(
         "Failed to send verification email. Please try again."
       );

@@ -1,7 +1,6 @@
 // File: /api/user/verify-email.ts
 import { NextRequest, NextResponse } from "next/server";
-import { tempUserStore } from "../register/route"; // import from temp store
-import { hashPassword, generateJWT } from "@/lib/api-utils";
+import { generateJWT } from "@/lib/api-utils";
 import { UserService } from "@/lib/database-utils";
 import dbConnect from "@/lib/db";
 
@@ -9,47 +8,62 @@ export async function POST(req: NextRequest) {
   await dbConnect();
   const { email, code } = await req.json();
 
-  const tempUser = tempUserStore.get(email);
-  if (!tempUser || tempUser.verificationCode !== code) {
+  console.log("Verification attempt:", { email, code });
+
+  // Find user by email
+  const user = await UserService.findByEmail(email);
+
+  if (!user) {
     return NextResponse.json(
-      { error: "Invalid or expired code" },
+      { error: "No registration found for this email. Please register again." },
       { status: 400 }
     );
   }
 
-  // Hash password
-  const hashedPassword = await hashPassword(tempUser.password);
+  console.log("Found user:", user.email, "isVerified:", user.isVerified);
+  console.log("Stored verification code:", user.verificationCode);
+  console.log("Provided code:", code);
+  console.log("Codes match:", user.verificationCode === code);
 
-  // Final user data
-  const userData = {
-    ...tempUser,
-    password: hashedPassword,
+  if (user.isVerified) {
+    return NextResponse.json(
+      { error: "Email is already verified." },
+      { status: 400 }
+    );
+  }
+
+  if (user.verificationCode !== code) {
+    return NextResponse.json(
+      {
+        error: `Invalid code. Expected: ${user.verificationCode}, Got: ${code}`,
+      },
+      { status: 400 }
+    );
+  }
+
+  // Update user to verified
+  const updatedUser = await UserService.updateUser(user._id, {
     isVerified: true,
-  };
-
-  // Save user to DB
-  const newUser = await UserService.createUser(userData);
-
-  // Clear temp store
-  tempUserStore.delete(email);
+    verificationCode: undefined, // Clear the code
+  });
 
   // Generate token
-  const token = generateJWT(newUser._id);
+  const token = generateJWT(updatedUser._id);
 
   return NextResponse.json({
     message: "Email verified successfully.",
     token,
     user: {
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      phone: newUser.phone,
-      address: newUser.address,
-      gender: newUser.gender,
-      dob: newUser.dob,
-      image: newUser.image,
-      isVerified: newUser.isVerified,
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      phone: updatedUser.phone,
+      address: updatedUser.address,
+      gender: updatedUser.gender,
+      dob: updatedUser.dob,
+      image: updatedUser.image,
+      isVerified: updatedUser.isVerified,
     },
   });
 }

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
-    await dbConnect();
+    console.log("Test API called - starting response...");
 
-    return NextResponse.json({
+    // Quick response without database connection for basic health check
+    const basicResponse = {
       success: true,
       message: "Next.js Backend API is working!",
       timestamp: new Date().toISOString(),
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         corsEnabled: true,
         imageUpload: true,
         cloudinary: !!process.env.CLOUDINARY_NAME,
-        emailVerification: false, // Simplified - no email verification
+        emailVerification: false,
         simplifiedAuth: true,
       },
       env: {
@@ -29,12 +29,19 @@ export async function GET(request: NextRequest) {
         usingFallbackJWT: !process.env.JWT_SECRET,
         usingFallbackMongo: !process.env.mongoatlasURI,
       },
-      status: "Ready for simplified registration",
-    });
+      status: "API is responding",
+    };
+
+    console.log("Test API response ready");
+    return NextResponse.json(basicResponse);
   } catch (error: any) {
     console.error("Test route error:", error.message);
     return NextResponse.json(
-      { success: false, message: "Server error" },
+      {
+        success: false,
+        message: "Server error: " + error.message,
+        timestamp: new Date().toISOString(),
+      },
       { status: 500 }
     );
   }

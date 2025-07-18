@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import VerificationCode from "@/models/VerificationCode"; // create this model
 import User from "@/models/User"; // your user model
-import sendEmail from "@/lib/sendEmail"; // implement a simple sendEmail function
 import { hashPassword } from "@/lib/api-utils";
 
 export async function POST(req: NextRequest) {
@@ -18,22 +16,11 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "send") {
-    // 1. Generate a 6-digit code
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
-
-    // 2. Save to DB (optional: with expiry)
-    await VerificationCode.findOneAndUpdate(
-      { email },
-      { code: verificationCode, createdAt: new Date() },
-      { upsert: true }
+    // This action is handled by the forgot-password endpoint
+    return NextResponse.json(
+      { success: false, message: "Use /api/user/forgot-password to send code." },
+      { status: 400 }
     );
-
-    // 3. Send the email
-    await sendEmail(email, `Your verification code is: ${verificationCode}`);
-
-    return NextResponse.json({ success: true, message: "Code sent to email." });
   }
 
   if (action === "verify") {
@@ -43,8 +30,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
 
-    const entry = await VerificationCode.findOne({ email });
-    if (!entry || entry.code !== code) {
+    const user = await User.findOne({ email });
+    if (!user || user.resetCode !== code) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired code." },
         { status: 400 }
@@ -63,19 +50,17 @@ export async function POST(req: NextRequest) {
         );
       }
       const hashedPassword = await hashPassword(newPassword);
-      const user = await User.findOneAndUpdate(
+      const updatedUser = await User.findOneAndUpdate(
         { email },
-        { password: hashedPassword },
+        { password: hashedPassword, resetCode: null },
         { new: true }
       );
-      if (!user) {
+      if (!updatedUser) {
         return NextResponse.json(
           { success: false, message: "User not found." },
           { status: 404 }
         );
       }
-      // Optionally, delete the verification code after successful reset
-      await VerificationCode.deleteOne({ email });
       return NextResponse.json({
         success: true,
         message: "Password reset successful.",

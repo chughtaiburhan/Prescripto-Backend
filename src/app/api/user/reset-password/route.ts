@@ -3,19 +3,25 @@ import dbConnect from "@/lib/db";
 import VerificationCode from "@/models/VerificationCode"; // create this model
 import User from "@/models/User"; // your user model
 import sendEmail from "@/lib/sendEmail"; // implement a simple sendEmail function
+import { hashPassword } from "@/lib/api-utils";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
 
-  const { email, action, code } = await req.json();
+  const { email, action, code, newPassword } = await req.json();
 
   if (!email || !action) {
-    return NextResponse.json({ success: false, message: "Missing fields." }, { status: 400 });
+    return NextResponse.json(
+      { success: false, message: "Missing fields." },
+      { status: 400 }
+    );
   }
 
   if (action === "send") {
     // 1. Generate a 6-digit code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     // 2. Save to DB (optional: with expiry)
     await VerificationCode.findOneAndUpdate(
@@ -31,18 +37,56 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === "verify") {
-    if (!code) return NextResponse.json({ success: false, message: "Verification code missing." }, { status: 400 });
+    if (!code)
+      return NextResponse.json(
+        { success: false, message: "Verification code missing." },
+        { status: 400 }
+      );
 
     const entry = await VerificationCode.findOne({ email });
     if (!entry || entry.code !== code) {
-      return NextResponse.json({ success: false, message: "Invalid or expired code." }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Invalid or expired code." },
+        { status: 400 }
+      );
     }
 
-    // If you want to now create the user:
-    // You must pass registrationData from frontend separately
+    // Password reset logic
+    if (newPassword) {
+      if (newPassword.length < 8) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Password must be at least 8 characters.",
+          },
+          { status: 400 }
+        );
+      }
+      const hashedPassword = await hashPassword(newPassword);
+      const user = await User.findOneAndUpdate(
+        { email },
+        { password: hashedPassword },
+        { new: true }
+      );
+      if (!user) {
+        return NextResponse.json(
+          { success: false, message: "User not found." },
+          { status: 404 }
+        );
+      }
+      // Optionally, delete the verification code after successful reset
+      await VerificationCode.deleteOne({ email });
+      return NextResponse.json({
+        success: true,
+        message: "Password reset successful.",
+      });
+    }
 
     return NextResponse.json({ success: true, message: "Email verified." });
   }
 
-  return NextResponse.json({ success: false, message: "Invalid action." }, { status: 400 });
+  return NextResponse.json(
+    { success: false, message: "Invalid action." },
+    { status: 400 }
+  );
 }

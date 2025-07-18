@@ -27,7 +27,17 @@ export async function POST(req: NextRequest) {
 
   if (user.isVerified) {
     return NextResponse.json(
-      { error: "Email is already verified." },
+      { error: "Email is already verified. You can now login." },
+      { status: 400 }
+    );
+  }
+
+  if (!user.verificationCode) {
+    return NextResponse.json(
+      {
+        error:
+          "No verification code found. Please register again or request a new code.",
+      },
       { status: 400 }
     );
   }
@@ -35,7 +45,8 @@ export async function POST(req: NextRequest) {
   if (user.verificationCode !== code) {
     return NextResponse.json(
       {
-        error: `Invalid code. Expected: ${user.verificationCode}, Got: ${code}`,
+        error:
+          "Invalid verification code. Please check your email and try again.",
       },
       { status: 400 }
     );

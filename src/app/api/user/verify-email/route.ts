@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   console.log("Verification attempt:", { email, code });
 
   // Find user by email
-  const user = await UserService.findByEmail(email);
+  const user = await UserService.findByEmailForVerification(email);
 
   if (!user) {
     return NextResponse.json(

@@ -304,6 +304,14 @@ export class UserService extends DatabaseService {
     );
   }
 
+  static async findByEmailForVerification(email: string) {
+    return this.findOne(
+      (await import("@/models/User")).default,
+      { email: email.toLowerCase().trim() },
+      { select: "-password -resetCode" }
+    );
+  }
+
   static async createUser(userData: any) {
     const User = (await import("@/models/User")).default;
     return this.create(User, userData);

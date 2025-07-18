@@ -123,7 +123,6 @@ export const commonValidationRules = {
     required: true,
     minLength: 6,
     maxLength: 128,
-    pattern: /^(?=.*[a-z])(?=.*\d)[a-zA-Z\d]+$/,
   },
   name: {
     field: "name",
@@ -221,13 +220,8 @@ export const validateEmail = (email: string): string | null => {
 
 export const validatePassword = (password: string): string | null => {
   if (!password) return "Password is required";
-  if (password.length < 8) return "Password must be at least 8 characters";
+  if (password.length < 6) return "Password must be at least 6 characters";
   if (password.length > 128) return "Password too long";
-  if (!/(?=.*[a-z])/.test(password))
-    return "Password must contain lowercase letter";
-  if (!/(?=.*[A-Z])/.test(password))
-    return "Password must contain uppercase letter";
-  if (!/(?=.*\d)/.test(password)) return "Password must contain number";
   return null;
 };
 

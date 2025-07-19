@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     return new NextResponse(null, {
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Origin": allowedOrigin || allowedOrigins[0],
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, atoken",
       },
@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+  response.headers.set("Access-Control-Allow-Origin", allowedOrigin || allowedOrigins[0]);
   response.headers.set(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, OPTIONS"

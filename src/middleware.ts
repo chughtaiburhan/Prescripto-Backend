@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const allowedOrigin = "https://prescripto-frontend-ecru.vercel.app";
+const allowedOrigins = [
+  "https://prescripto-frontend-ten.vercel.app",
+  "https://prescripto-frontend-ecru.vercel.app",
+  "http://localhost:5173"
+];
 
 export function middleware(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  const allowedOrigin = allowedOrigins.includes(origin || "") ? origin : allowedOrigins[0];
+
   if (request.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 200,

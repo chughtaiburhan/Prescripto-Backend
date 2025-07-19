@@ -4,12 +4,14 @@ import type { NextRequest } from "next/server";
 const allowedOrigins = [
   "https://prescripto-frontend-ten.vercel.app",
   "https://prescripto-frontend-ecru.vercel.app",
-  "http://localhost:5173"
+  "http://localhost:5173",
 ];
 
 export function middleware(request: NextRequest) {
   const origin = request.headers.get("origin");
-  const allowedOrigin = allowedOrigins.includes(origin || "") ? origin : allowedOrigins[0];
+  const allowedOrigin = allowedOrigins.includes(origin || "")
+    ? origin
+    : allowedOrigins[0];
 
   if (request.method === "OPTIONS") {
     return new NextResponse(null, {
@@ -23,7 +25,10 @@ export function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  response.headers.set("Access-Control-Allow-Origin", allowedOrigin || allowedOrigins[0]);
+  response.headers.set(
+    "Access-Control-Allow-Origin",
+    allowedOrigin || allowedOrigins[0]
+  );
   response.headers.set(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, OPTIONS"
